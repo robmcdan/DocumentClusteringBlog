@@ -10,26 +10,24 @@ tutorial on simple document clustering using sci-kit learn
 '''
 
 class DocLoader():
-
     def __init__(self, document_directory='/Users/robm/Documents/BlogCode/DocumentClusteringBlog/Documents'):
+        self.terms = None
+        self.tfidf_matrix = None
         self._document_directory = '/Users/robm/Documents/BlogCode/DocumentClusteringBlog/Documents'
         if not os.path.exists(self._document_directory):
             raise Exception('Could not locate document directory: {0}'.format(self._document_directory))
 
-    def _load_documents(self):
-        for path, subdirs, files in os.walk(self._document_directory):
-            for filename in files:
-                self._vectorize_documents(filename)
-
-    def _vectorize_documents(self, documents_list, vocab, max_df=0.8, min_df=0.2):
+    def vectorize_documents(self, max_df=0.8, min_df=0.2, idf=True, use_stemmer=True):
+        tokenizer = None
+        if use_stemmer:
+            tokenizer = self._stemming_tokenizer
         tfidf_vectorizer = TfidfVectorizer(max_df=max_df,
                                        min_df=min_df, stop_words='english',
-                                       use_idf=True, tokenizer=self.tokenizer, ngram_range=(1, 3))
+                                       use_idf=idf, tokenizer=tokenizer, ngram_range=(1, 3))
+        self.tfidf_matrix = tfidf_vectorizer.fit_transform(self._document_directory)
+        self.terms = tfidf_vectorizer.get_feature_names()
 
-    def get_vectors(self):
-        self._load_documents()
-
-    def tokenizer(text):
+    def _stemming_tokenizer(text):
         stemmer = SnowballStemmer("english")
         tokens = [word for sentence in nltk.sent_tokenize(text) for word in nltk.word_tokenize(sentence)]
         filtered_tokens = []
